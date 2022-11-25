@@ -356,7 +356,7 @@ SurfaceBatteryQueryBatteryEstimatedTime(
 			}
 			else
 			{
-				*ResultValue = ETA * 60;
+				*ResultValue = ETA * 60; // Seconds
 
 				Trace(
 					TRACE_LEVEL_INFORMATION,
@@ -454,6 +454,7 @@ Return Value:
 	BQ27742_MANUF_INFO_TYPE ManufacturerBlockInfoA = { 0 };
 
 	ULONG Temperature = 0;
+	USHORT DateData = 0;
 
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Entering %!FUNC!\n");
 	PAGED_CODE();
@@ -658,10 +659,12 @@ Return Value:
 			"BatteryManufactureDate: %d\n",
 			ManufacturerBlockInfoA.BatteryManufactureDate);
 
-		//ManufactureDate.Year = ManufacturerBlockInfoA.BatteryManufactureDate;
-		ManufactureDate.Day = 1;
-		ManufactureDate.Month = 1;
-		ManufactureDate.Year = 2020;
+		DateData = ((ManufacturerBlockInfoA.BatteryManufactureDate & 0xFF00) >> 8) |
+					((ManufacturerBlockInfoA.BatteryManufactureDate & 0x00FF) << 8);
+
+		ManufactureDate.Day   = DateData & 0x1F;
+		ManufactureDate.Month = (DateData >> 5) & 0xF;
+		ManufactureDate.Year  = ((DateData >> 9) & 0x7F) + 1980;
 
 		ReturnBuffer = &ManufactureDate;
 		ReturnBufferLength = sizeof(BATTERY_MANUFACTURE_DATE);
@@ -692,7 +695,7 @@ Return Value:
 		break;
 
 	case BatteryTemperature:
-		Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x06, &Temperature, 2);
+		Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x06, &Temperature, 2); // 0.1°K
 		if (!NT_SUCCESS(Status))
 		{
 			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
@@ -779,7 +782,6 @@ Return Value:
 {
 	PSURFACE_BATTERY_FDO_DATA DevExt;
 	NTSTATUS Status;
-	INT16 Rate = 0;
 	UCHAR Flags = 0;
 
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Entering %!FUNC!\n");
@@ -836,32 +838,34 @@ Return Value:
 		BatteryStatus->PowerState = BATTERY_CHARGING;
 	}
 
-	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x10, &BatteryStatus->Capacity, 2);
+	UINT16 RemainingCapacity = 0; // mAh
+	UINT16 Voltage 			 = 0; // mV
+	INT16 AverageCurrent 	 = 0; // mA
+
+	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x10, &RemainingCapacity, 2);
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
 		goto QueryStatusEnd;
 	}
 
-	BatteryStatus->Capacity = SurfaceBatteryConvertToWatts(BatteryStatus->Capacity);
-
-	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x08, &BatteryStatus->Voltage, 2);
+	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x08, &Voltage, 2);
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
 		goto QueryStatusEnd;
 	}
 
-	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x14, &Rate, 2);
+	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x14, &AverageCurrent, 2);
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
 		goto QueryStatusEnd;
 	}
 
-	BatteryStatus->Rate = Rate;
-
-	BatteryStatus->Rate = SurfaceBatteryConvertToWatts(BatteryStatus->Rate);
+	BatteryStatus->Capacity = (((ULONG)RemainingCapacity * (ULONG)Voltage) / (ULONG)1000); // mWh
+	BatteryStatus->Voltage  = (ULONG)Voltage;											   // mV
+	BatteryStatus->Rate 	= (((LONG)AverageCurrent * (LONG)Voltage) / (LONG)1000); 	   // mW (Signed)
 
 	Trace(
 		TRACE_LEVEL_INFORMATION,
@@ -1021,8 +1025,8 @@ Return Value:
 	PULONG CriticalBias;
 	PBATTERY_CHARGER_ID ChargerId;
 	PBATTERY_CHARGER_STATUS ChargerStatus;
-	//PBATTERY_USB_CHARGER_STATUS UsbChargerStatus;
-	//PUSBFN_PORT_TYPE UsbFnPortType;
+	PBATTERY_USB_CHARGER_STATUS UsbChargerStatus;
+	USBFN_PORT_TYPE UsbFnPortType;
 	PSURFACE_BATTERY_FDO_DATA DevExt;
 	NTSTATUS Status;
 
@@ -1094,7 +1098,7 @@ Return Value:
 			"SurfaceBattery : BatteryChargingSource Type = %d\n",
 			ChargerStatus->Type);
 
-		/*if (ChargerStatus->Type == BatteryChargingSourceType_USB)
+		if (ChargerStatus->Type == BatteryChargingSourceType_USB)
 		{
 			UsbChargerStatus = (PBATTERY_USB_CHARGER_STATUS)Buffer;
 
@@ -1102,12 +1106,12 @@ Return Value:
 				"SurfaceBattery : BatteryChargingSourceType_USB: Flags = %d, MaxCurrent = %d, Voltage = %d, PortType = %d, PortId = %llu, OemCharger = %!GUID!\n",
 				UsbChargerStatus->Flags, UsbChargerStatus->MaxCurrent, UsbChargerStatus->Voltage, UsbChargerStatus->PortType, UsbChargerStatus->PortId, &UsbChargerStatus->OemCharger);
 
-			UsbFnPortType = (PUSBFN_PORT_TYPE)UsbChargerStatus->PowerSourceInformation;
+			UsbFnPortType = (USBFN_PORT_TYPE)(UINT64)UsbChargerStatus->PowerSourceInformation;
 
 			Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_INFO,
 				"SurfaceBattery : UsbFnPortType = %d\n",
-				*UsbFnPortType);
-		}*/
+				UsbFnPortType);
+		}
 
 		Status = STATUS_SUCCESS;
 	}
