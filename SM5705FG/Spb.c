@@ -22,11 +22,11 @@
 
 --*/
 
-#include "SurfaceBattery.h"
+#include "SM5705FG.h"
 #include "spb.h"
 #include <spb.tmh>
 
-#define I2C_VERBOSE_LOGGING 0
+#define I2C_VERBOSE_LOGGING 1
 
 NTSTATUS
 SpbDoWriteDataSynchronously(
@@ -332,7 +332,6 @@ exit:
 
 	return status;
 }
-
 VOID
 SpbTargetDeinitialize(
 	IN WDFDEVICE FxDevice,

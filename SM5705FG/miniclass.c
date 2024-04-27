@@ -17,43 +17,43 @@ Abstract:
 
 //--------------------------------------------------------------------- Includes
 
-#include "SurfaceBattery.h"
+#include "SM5705FG.h"
 #include "Spb.h"
 #include "usbfnbase.h"
 #include "miniclass.tmh"
 
-//------------------------------------------------------------------- Prototypes
+#include "sm5705_fuelgauge_impl.h"
 
-#define SurfaceBatteryConvertToWatts(Value) ((Value) * 3830) / 1000
+//------------------------------------------------------------------- Prototypes
 
 _IRQL_requires_same_
 VOID
-SurfaceBatteryUpdateTag(
+SM5705FGUpdateTag(
 	_Inout_ PSURFACE_BATTERY_FDO_DATA DevExt
 );
 
-BCLASS_QUERY_TAG_CALLBACK SurfaceBatteryQueryTag;
-BCLASS_QUERY_INFORMATION_CALLBACK SurfaceBatteryQueryInformation;
-BCLASS_SET_INFORMATION_CALLBACK SurfaceBatterySetInformation;
-BCLASS_QUERY_STATUS_CALLBACK SurfaceBatteryQueryStatus;
-BCLASS_SET_STATUS_NOTIFY_CALLBACK SurfaceBatterySetStatusNotify;
-BCLASS_DISABLE_STATUS_NOTIFY_CALLBACK SurfaceBatteryDisableStatusNotify;
+BCLASS_QUERY_TAG_CALLBACK SM5705FGQueryTag;
+BCLASS_QUERY_INFORMATION_CALLBACK SM5705FGQueryInformation;
+BCLASS_SET_INFORMATION_CALLBACK SM5705FGSetInformation;
+BCLASS_QUERY_STATUS_CALLBACK SM5705FGQueryStatus;
+BCLASS_SET_STATUS_NOTIFY_CALLBACK SM5705FGSetStatusNotify;
+BCLASS_DISABLE_STATUS_NOTIFY_CALLBACK SM5705FGDisableStatusNotify;
 
 //---------------------------------------------------------------------- Pragmas
 
-#pragma alloc_text(PAGE, SurfaceBatteryPrepareHardware)
-#pragma alloc_text(PAGE, SurfaceBatteryUpdateTag)
-#pragma alloc_text(PAGE, SurfaceBatteryQueryTag)
-#pragma alloc_text(PAGE, SurfaceBatteryQueryInformation)
-#pragma alloc_text(PAGE, SurfaceBatteryQueryStatus)
-#pragma alloc_text(PAGE, SurfaceBatterySetStatusNotify)
-#pragma alloc_text(PAGE, SurfaceBatteryDisableStatusNotify)
-#pragma alloc_text(PAGE, SurfaceBatterySetInformation)
-
+#pragma alloc_text(PAGE, SM5705FGPrepareHardware)
+#pragma alloc_text(PAGE, SM5705FGUpdateTag)
+#pragma alloc_text(PAGE, SM5705FGQueryTag)
+#pragma alloc_text(PAGE, SM5705FGQueryInformation)
+#pragma alloc_text(PAGE, SM5705FGQueryStatus)
+#pragma alloc_text(PAGE, SM5705FGSetStatusNotify)
+#pragma alloc_text(PAGE, SM5705FGDisableStatusNotify)
+#pragma alloc_text(PAGE, SM5705FGSetInformation)
 //------------------------------------------------------------ Battery Interface
+
 _Use_decl_annotations_
 VOID
-SurfaceBatteryPrepareHardware(
+SM5705FGPrepareHardware(
 	WDFDEVICE Device
 )
 
@@ -84,7 +84,7 @@ Return Value:
 	DevExt = GetDeviceExtension(Device);
 
 	WdfWaitLockAcquire(DevExt->StateLock, NULL);
-	SurfaceBatteryUpdateTag(DevExt);
+	SM5705FGUpdateTag(DevExt);
 	WdfWaitLockRelease(DevExt->StateLock);
 
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE,
@@ -95,7 +95,7 @@ Return Value:
 
 _Use_decl_annotations_
 VOID
-SurfaceBatteryUpdateTag(
+SM5705FGUpdateTag(
 	PSURFACE_BATTERY_FDO_DATA DevExt
 )
 
@@ -131,7 +131,7 @@ Return Value:
 
 _Use_decl_annotations_
 NTSTATUS
-SurfaceBatteryQueryTag(
+SM5705FGQueryTag(
 	PVOID Context,
 	PULONG BatteryTag
 )
@@ -179,7 +179,7 @@ Return Value:
 }
 
 NTSTATUS
-SurfaceBatteryGetManufacturerBlockA(
+SM5705FGGetManufacturerBlockA(
 	PSURFACE_BATTERY_FDO_DATA DevExt,
 	PBQ27742_MANUF_INFO_TYPE ManufacturerBlockInfoA
 )
@@ -192,13 +192,14 @@ SurfaceBatteryGetManufacturerBlockA(
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Entering %!FUNC!\n");
 
 	ResultValue = 0x01;
+	/*
 	Status = SpbWriteDataSynchronously(&DevExt->I2CContext, 0x3F, &ResultValue, 1);
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbWriteDataSynchronously failed with Status = 0x%08lX\n", Status);
 		goto Exit;
 	}
-
+	*/
 	delay.QuadPart = RELATIVE(MILLISECONDS(1));
 	Status = KeDelayExecutionThread(KernelMode, TRUE, &delay);
 	if (!NT_SUCCESS(Status))
@@ -206,7 +207,7 @@ SurfaceBatteryGetManufacturerBlockA(
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "KeDelayExecutionThread failed with Status = 0x%08lX\n", Status);
 		goto Exit;
 	}
-
+	
 	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x40, Data, sizeof(Data));
 	if (!NT_SUCCESS(Status))
 	{
@@ -224,62 +225,48 @@ Exit:
 }
 
 NTSTATUS
-SurfaceBatteryQueryBatteryInformation(
+SM5705FGQueryBatteryInformation(
 	PSURFACE_BATTERY_FDO_DATA DevExt,
 	PBATTERY_INFORMATION BatteryInformationResult
 )
 {
 	NTSTATUS Status;
-	BQ27742_MANUF_INFO_TYPE ManufacturerBlockInfoA = { 0 };
 
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Entering %!FUNC!\n");
 
 	BatteryInformationResult->Capabilities =
 		BATTERY_SYSTEM_BATTERY;
-		//BATTERY_SET_CHARGE_SUPPORTED |
-		//BATTERY_SET_DISCHARGE_SUPPORTED |
-		//BATTERY_SET_CHARGINGSOURCE_SUPPORTED |
-		//BATTERY_SET_CHARGER_ID_SUPPORTED;
-	// BATTERY_CAPACITY_RELATIVE |
+
 	BatteryInformationResult->Technology = 1;
 
-	Status = SurfaceBatteryGetManufacturerBlockA(DevExt, &ManufacturerBlockInfoA);
-	if (!NT_SUCCESS(Status))
-	{
-		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SurfaceBatteryGetManufacturerBlockA failed with Status = 0x%08lX\n", Status);
-		goto Exit;
-	}
+	BYTE LION[4] = {'L','I','O','N'};
+	RtlCopyMemory(BatteryInformationResult->Chemistry, LION, 4);
 
-	RtlCopyMemory(BatteryInformationResult->Chemistry, ManufacturerBlockInfoA.Chemistry, sizeof(BatteryInformationResult->Chemistry));
+	// fuelgauge,capacity = <7040>;
+	BatteryInformationResult->DesignedCapacity = 7040;
 
-	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x3C, &BatteryInformationResult->DesignedCapacity, 2);
-	if (!NT_SUCCESS(Status))
-	{
-		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
-		goto Exit;
-	}
-
-	BatteryInformationResult->DesignedCapacity = SurfaceBatteryConvertToWatts(BatteryInformationResult->DesignedCapacity);
-
-	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x12, &BatteryInformationResult->FullChargedCapacity, 2);
-	if (!NT_SUCCESS(Status))
-	{
-		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
-		goto Exit;
-	}
-
-	BatteryInformationResult->FullChargedCapacity = SurfaceBatteryConvertToWatts(BatteryInformationResult->FullChargedCapacity);
+	// battery,battery_full_capacity = <7040>;
+	BatteryInformationResult->FullChargedCapacity = 7040;
 
 	BatteryInformationResult->DefaultAlert1 = BatteryInformationResult->FullChargedCapacity * 7 / 100; // 7% of total capacity for error
 	BatteryInformationResult->DefaultAlert2 = BatteryInformationResult->FullChargedCapacity * 9 / 100; // 9% of total capacity for warning
 	BatteryInformationResult->CriticalBias = 0;
 
-	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x2A, &BatteryInformationResult->CycleCount, 2);
+	int  ret_cycle  = 0;
+	int  CycleCount = 0;
+	Status = SpbReadDataSynchronously(&DevExt->I2CContext, SM5705_REG_SOC_CYCLE, &ret_cycle, 2);
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
-		goto Exit;
 	}
+	if (ret_cycle < 0) {
+		CycleCount = 0;
+	}
+	else {
+		CycleCount = ret_cycle & 0x03FF;
+	}
+
+	BatteryInformationResult->CycleCount = CycleCount;
 
 	Trace(
 		TRACE_LEVEL_INFORMATION,
@@ -287,7 +274,6 @@ SurfaceBatteryQueryBatteryInformation(
 		"BATTERY_INFORMATION: \n"
 		"Capabilities: %d \n"
 		"Technology: %d \n"
-		"Chemistry: %c%c%c%c \n"
 		"DesignedCapacity: %d \n"
 		"FullChargedCapacity: %d \n"
 		"DefaultAlert1: %d \n"
@@ -296,10 +282,6 @@ SurfaceBatteryQueryBatteryInformation(
 		"CycleCount: %d\n",
 		BatteryInformationResult->Capabilities,
 		BatteryInformationResult->Technology,
-		BatteryInformationResult->Chemistry[0],
-		BatteryInformationResult->Chemistry[1],
-		BatteryInformationResult->Chemistry[2],
-		BatteryInformationResult->Chemistry[3],
 		BatteryInformationResult->DesignedCapacity,
 		BatteryInformationResult->FullChargedCapacity,
 		BatteryInformationResult->DefaultAlert1,
@@ -315,7 +297,7 @@ Exit:
 }
 
 NTSTATUS
-SurfaceBatteryQueryBatteryEstimatedTime(
+SM5705FGQueryBatteryEstimatedTime(
 	PSURFACE_BATTERY_FDO_DATA DevExt,
 	LONG AtRate,
 	PULONG ResultValue
@@ -395,7 +377,7 @@ Exit:
 
 _Use_decl_annotations_
 NTSTATUS
-SurfaceBatteryQueryInformation(
+SM5705FGQueryInformation(
 	PVOID Context,
 	ULONG BatteryTag,
 	BATTERY_QUERY_INFORMATION_LEVEL Level,
@@ -453,7 +435,8 @@ Return Value:
 
 	BQ27742_MANUF_INFO_TYPE ManufacturerBlockInfoA = { 0 };
 
-	ULONG Temperature = 0;
+	int ret_Temperature = 0;
+	int Temperature = 0;
 	USHORT DateData = 0;
 
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Entering %!FUNC!\n");
@@ -476,10 +459,10 @@ Return Value:
 	Status = STATUS_INVALID_DEVICE_REQUEST;
 	switch (Level) {
 	case BatteryInformation:
-		Status = SurfaceBatteryQueryBatteryInformation(DevExt, &BatteryInformationResult);
+		Status = SM5705FGQueryBatteryInformation(DevExt, &BatteryInformationResult);
 		if (!NT_SUCCESS(Status))
 		{
-			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SurfaceBatteryQueryBatteryInformation failed with Status = 0x%08lX\n", Status);
+			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SM5705FGQueryBatteryInformation failed with Status = 0x%08lX\n", Status);
 			goto Exit;
 		}
 
@@ -489,10 +472,10 @@ Return Value:
 		break;
 
 	case BatteryEstimatedTime:
-		Status = SurfaceBatteryQueryBatteryEstimatedTime(DevExt, AtRate, &ResultValue);
+		Status = SM5705FGQueryBatteryEstimatedTime(DevExt, AtRate, &ResultValue);
 		if (!NT_SUCCESS(Status))
 		{
-			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SurfaceBatteryQueryBatteryEstimatedTime failed with Status = 0x%08lX\n", Status);
+			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SM5705FGQueryBatteryEstimatedTime failed with Status = 0x%08lX\n", Status);
 			goto Exit;
 		}
 
@@ -502,27 +485,16 @@ Return Value:
 		break;
 
 	case BatteryUniqueID:
-		Status = SurfaceBatteryGetManufacturerBlockA(DevExt, &ManufacturerBlockInfoA);
-		if (!NT_SUCCESS(Status))
-		{
-			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SurfaceBatteryGetManufacturerBlockA failed with Status = 0x%08lX\n", Status);
-			goto Exit;
-		}
 
-		swprintf_s(StringResult, sizeof(StringResult) / sizeof(WCHAR), L"%c%c%c%c%c%c%c%c%c%c%c%d%u",
-			ManufacturerBlockInfoA.BatteryManufactureName[0],
-			ManufacturerBlockInfoA.BatteryManufactureName[1],
-			ManufacturerBlockInfoA.BatteryManufactureName[2],
-			ManufacturerBlockInfoA.BatteryDeviceName[0],
-			ManufacturerBlockInfoA.BatteryDeviceName[1],
-			ManufacturerBlockInfoA.BatteryDeviceName[2],
-			ManufacturerBlockInfoA.BatteryDeviceName[3],
-			ManufacturerBlockInfoA.BatteryDeviceName[4],
-			ManufacturerBlockInfoA.BatteryDeviceName[5],
-			ManufacturerBlockInfoA.BatteryDeviceName[6],
-			ManufacturerBlockInfoA.BatteryDeviceName[7],
-			ManufacturerBlockInfoA.BatteryManufactureDate,
-			ManufacturerBlockInfoA.BatterySerialNumber);
+		swprintf_s(StringResult, sizeof(StringResult) / sizeof(WCHAR), L"%c%c%c%c%c%c%c%c",
+			'S',
+			'M',
+			'5',
+			'7',
+			'0',
+			'5',
+			'F',
+			'G');
 
 		Trace(
 			TRACE_LEVEL_INFORMATION,
@@ -544,18 +516,13 @@ Return Value:
 		Status = STATUS_SUCCESS;
 		break;
 
-	case BatteryManufactureName:
-		Status = SurfaceBatteryGetManufacturerBlockA(DevExt, &ManufacturerBlockInfoA);
-		if (!NT_SUCCESS(Status))
-		{
-			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SurfaceBatteryGetManufacturerBlockA failed with Status = 0x%08lX\n", Status);
-			goto Exit;
-		}
 
-		swprintf_s(StringResult, sizeof(StringResult) / sizeof(WCHAR), L"%c%c%c",
-			ManufacturerBlockInfoA.BatteryManufactureName[0],
-			ManufacturerBlockInfoA.BatteryManufactureName[1],
-			ManufacturerBlockInfoA.BatteryManufactureName[2]);
+	case BatteryManufactureName:
+
+		swprintf_s(StringResult, sizeof(StringResult) / sizeof(WCHAR), L"%c%c",
+			0x53,  // S
+			0x53   // S
+		);
 
 		Trace(
 			TRACE_LEVEL_INFORMATION,
@@ -578,22 +545,15 @@ Return Value:
 		break;
 
 	case BatteryDeviceName:
-		Status = SurfaceBatteryGetManufacturerBlockA(DevExt, &ManufacturerBlockInfoA);
-		if (!NT_SUCCESS(Status))
-		{
-			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SurfaceBatteryGetManufacturerBlockA failed with Status = 0x%08lX\n", Status);
-			goto Exit;
-		}
 
-		swprintf_s(StringResult, sizeof(StringResult) / sizeof(WCHAR), L"%c%c%c%c%c%c%c%c",
-			ManufacturerBlockInfoA.BatteryDeviceName[0],
-			ManufacturerBlockInfoA.BatteryDeviceName[1],
-			ManufacturerBlockInfoA.BatteryDeviceName[2],
-			ManufacturerBlockInfoA.BatteryDeviceName[3],
-			ManufacturerBlockInfoA.BatteryDeviceName[4],
-			ManufacturerBlockInfoA.BatteryDeviceName[5],
-			ManufacturerBlockInfoA.BatteryDeviceName[6],
-			ManufacturerBlockInfoA.BatteryDeviceName[7]);
+		swprintf_s(StringResult, sizeof(StringResult) / sizeof(WCHAR), L"%c%c%c%c%c%c",
+			0x53,  //S
+			0x4D,  //M
+			0x35,  //5
+			0x37,  //7
+			0x30,  //0
+			0x35   //5
+		);
 
 		Trace(
 			TRACE_LEVEL_INFORMATION,
@@ -615,15 +575,10 @@ Return Value:
 		Status = STATUS_SUCCESS;
 		break;
 
-	case BatterySerialNumber:
-		Status = SurfaceBatteryGetManufacturerBlockA(DevExt, &ManufacturerBlockInfoA);
-		if (!NT_SUCCESS(Status))
-		{
-			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SurfaceBatteryGetManufacturerBlockA failed with Status = 0x%08lX\n", Status);
-			goto Exit;
-		}
+		case BatterySerialNumber:
 
-		swprintf_s(StringResult, sizeof(StringResult) / sizeof(WCHAR), L"%u", ManufacturerBlockInfoA.BatterySerialNumber);
+
+		swprintf_s(StringResult, sizeof(StringResult) / sizeof(WCHAR), L"%u", (UINT32)5705);
 
 		Trace(
 			TRACE_LEVEL_INFORMATION,
@@ -646,25 +601,10 @@ Return Value:
 		break;
 
 	case BatteryManufactureDate:
-		Status = SurfaceBatteryGetManufacturerBlockA(DevExt, &ManufacturerBlockInfoA);
-		if (!NT_SUCCESS(Status))
-		{
-			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SurfaceBatteryGetManufacturerBlockA failed with Status = 0x%08lX\n", Status);
-			goto Exit;
-		}
 
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			SURFACE_BATTERY_TRACE,
-			"BatteryManufactureDate: %d\n",
-			ManufacturerBlockInfoA.BatteryManufactureDate);
-
-		DateData = ((ManufacturerBlockInfoA.BatteryManufactureDate & 0xFF00) >> 8) |
-					((ManufacturerBlockInfoA.BatteryManufactureDate & 0x00FF) << 8);
-
-		ManufactureDate.Day   = DateData & 0x1F;
-		ManufactureDate.Month = (DateData >> 5) & 0xF;
-		ManufactureDate.Year  = ((DateData >> 9) & 0x7F) + 1980;
+		ManufactureDate.Day = 1;
+		ManufactureDate.Month = 1;
+		ManufactureDate.Year = 2019;
 
 		ReturnBuffer = &ManufactureDate;
 		ReturnBufferLength = sizeof(BATTERY_MANUFACTURE_DATE);
@@ -672,14 +612,8 @@ Return Value:
 		break;
 
 	case BatteryGranularityInformation:
-		Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x12, &ReportingScale.Capacity, 2);
-		if (!NT_SUCCESS(Status))
-		{
-			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
-			goto Exit;
-		}
 
-		ReportingScale.Capacity = SurfaceBatteryConvertToWatts(ReportingScale.Capacity);
+		ReportingScale.Capacity = 7040;
 		ReportingScale.Granularity = 1;
 
 		Trace(
@@ -695,11 +629,18 @@ Return Value:
 		break;
 
 	case BatteryTemperature:
-		Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x06, &Temperature, 2); // 0.1°K
+
+		Status = SpbReadDataSynchronously(&DevExt->I2CContext, SM5705_REG_TEMPERATURE, &ret_Temperature, 2);
 		if (!NT_SUCCESS(Status))
 		{
 			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
-			goto Exit;
+		}
+		if (ret_Temperature < 0) {
+			Temperature = 0;
+		}
+		else {
+			Temperature = ((ret_Temperature & 0x7F00) >> 8) * 10; //integer bit
+			Temperature = Temperature + (((ret_Temperature & 0x00f0) * 10) / 256); // integer + fractional bit
 		}
 
 		Trace(
@@ -749,7 +690,7 @@ QueryInformationEnd:
 
 _Use_decl_annotations_
 NTSTATUS
-SurfaceBatteryQueryStatus(
+SM5705FGQueryStatus(
 	PVOID Context,
 	ULONG BatteryTag,
 	PBATTERY_STATUS BatteryStatus
@@ -782,7 +723,6 @@ Return Value:
 {
 	PSURFACE_BATTERY_FDO_DATA DevExt;
 	NTSTATUS Status;
-	UCHAR Flags = 0;
 
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Entering %!FUNC!\n");
 	PAGED_CODE();
@@ -794,78 +734,70 @@ Return Value:
 		goto QueryStatusEnd;
 	}
 
-	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x0A, &Flags, 2);
+	BatteryStatus->PowerState = BATTERY_DISCHARGING;
+
+	unsigned int     Capacity = 0;
+	unsigned int     Voltage = 0;
+	int              Current = 0;
+	int              ret_Capacity = 0 ;
+	int              ret_Voltage = 0;
+	int              ret_Current = 0;
+
+	Status = SpbReadDataSynchronously(&DevExt->I2CContext, SM5705_REG_SOC, &ret_Capacity, 2);
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
 		goto QueryStatusEnd;
 	}
-
-	if (Flags & (1 << 9))
-	{
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			SURFACE_BATTERY_TRACE,
-			"BATTERY_POWER_ON_LINE\n");
-
-		BatteryStatus->PowerState = BATTERY_POWER_ON_LINE;
+	if (ret_Capacity < 0) {
+		Capacity = 500;
 	}
-	else if (Flags & (1 << 0))
-	{
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			SURFACE_BATTERY_TRACE,
-			"BATTERY_DISCHARGING\n");
-
-		BatteryStatus->PowerState = BATTERY_DISCHARGING;
-	}
-	else if (Flags & (1 << 1))
-	{
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			SURFACE_BATTERY_TRACE,
-			"BATTERY_CRITICAL\n");
-
-		BatteryStatus->PowerState = BATTERY_CRITICAL;
-	}
-	else
-	{
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			SURFACE_BATTERY_TRACE,
-			"BATTERY_CHARGING\n");
-
-		BatteryStatus->PowerState = BATTERY_CHARGING;
+	else {
+		Capacity = ((ret_Capacity & 0xff00) >> 8) * 10; //integer bit;
+		Capacity = Capacity + (((ret_Capacity & 0x00ff) * 10) / 256); // integer + fractional bit
 	}
 
-	UINT16 RemainingCapacity = 0; // mAh
-	UINT16 Voltage 			 = 0; // mV
-	INT16 AverageCurrent 	 = 0; // mA
-
-	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x10, &RemainingCapacity, 2);
+	Status = SpbReadDataSynchronously(&DevExt->I2CContext, SM5705_REG_VOLTAGE, &ret_Voltage, 2);
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
 		goto QueryStatusEnd;
 	}
+	if (ret_Voltage < 0) {
+		Voltage = 4000;
+	}
+	else {
+		Voltage = ((ret_Voltage & 0x3800) >> 11) * 1000;         //integer;
+		Voltage = Voltage + (((ret_Voltage & 0x07ff) * 1000) / 2048); // integer + fractional
+	}
 
-	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x08, &Voltage, 2);
+	Status = SpbReadDataSynchronously(&DevExt->I2CContext, SM5705_REG_CURRENT, &ret_Current, 2);
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
 		goto QueryStatusEnd;
 	}
-
-	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x14, &AverageCurrent, 2);
-	if (!NT_SUCCESS(Status))
+	if (ret_Current < 0)
 	{
-		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
-		goto QueryStatusEnd;
+		Current = 0;
+	}
+	else {
+		Current = ((ret_Current & 0x1800) >> 11) * 1000; //integer;
+		Current = Current + (((ret_Current & 0x07ff) * 1000) / 2048); // integer + fractional
+		if (ret_Current & 0x8000)
+			Current *= -1;
 	}
 
-	BatteryStatus->Capacity = (((ULONG)RemainingCapacity * (ULONG)Voltage) / (ULONG)1000); // mWh
-	BatteryStatus->Voltage  = (ULONG)Voltage;											   // mV
-	BatteryStatus->Rate 	= (((LONG)AverageCurrent * (LONG)Voltage) / (LONG)1000); 	   // mW (Signed)
+	/*
+     * BatteryStatus only accepts battery Capacity data in units of mWh,
+	 * So we need to perform some conversions.
+	 * For example: 150/100=15/100=0.15 (15%)
+	*/
+
+	// mWh
+	BatteryStatus->Capacity = (ULONG)Capacity * 7040 / (ULONG)1000;
+	BatteryStatus->Voltage = (ULONG)Voltage;
+	BatteryStatus->Rate = (((LONG)Current * (LONG)Voltage) / (LONG)1000);
 
 	Trace(
 		TRACE_LEVEL_INFORMATION,
@@ -892,7 +824,7 @@ QueryStatusEnd:
 
 _Use_decl_annotations_
 NTSTATUS
-SurfaceBatterySetStatusNotify(
+SM5705FGSetStatusNotify(
 	PVOID Context,
 	ULONG BatteryTag,
 	PBATTERY_NOTIFY BatteryNotify
@@ -951,7 +883,7 @@ SetStatusNotifyEnd:
 
 _Use_decl_annotations_
 NTSTATUS
-SurfaceBatteryDisableStatusNotify(
+SM5705FGDisableStatusNotify(
 	PVOID Context
 )
 
@@ -991,7 +923,7 @@ Return Value:
 
 _Use_decl_annotations_
 NTSTATUS
-SurfaceBatterySetInformation(
+SM5705FGSetInformation(
 	PVOID Context,
 	ULONG BatteryTag,
 	BATTERY_SET_INFORMATION_LEVEL Level,
@@ -1043,14 +975,14 @@ Return Value:
 	if (Level == BatteryCharge)
 	{
 		Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_INFO,
-			"SurfaceBattery : BatteryCharge\n");
+			"SM5705FG : BatteryCharge\n");
 
 		Status = STATUS_SUCCESS;
 	}
 	else if (Level == BatteryDischarge)
 	{
 		Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_INFO,
-			"SurfaceBattery : BatteryDischarge\n");
+			"SM5705FG : BatteryDischarge\n");
 
 		Status = STATUS_SUCCESS;
 	}
@@ -1063,11 +995,11 @@ Return Value:
 		ChargingSource = (PBATTERY_CHARGING_SOURCE)Buffer;
 
 		Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_INFO,
-			"SurfaceBattery : BatteryChargingSource Type = %d\n",
+			"SM5705FG : BatteryChargingSource Type = %d\n",
 			ChargingSource->Type);
 
 		Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_INFO,
-			"SurfaceBattery : Set MaxCurrentDraw = %u mA\n",
+			"SM5705FG : Set MaxCurrentDraw = %u mA\n",
 			ChargingSource->MaxCurrent);
 
 		Status = STATUS_SUCCESS;
@@ -1076,7 +1008,7 @@ Return Value:
 	{
 		CriticalBias = (PULONG)Buffer;
 		Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_INFO,
-			"SurfaceBattery : Set CriticalBias = %u mW\n",
+			"SM5705FG : Set CriticalBias = %u mW\n",
 			*CriticalBias);
 
 		Status = STATUS_SUCCESS;
@@ -1085,7 +1017,7 @@ Return Value:
 	{
 		ChargerId = (PBATTERY_CHARGER_ID)Buffer;
 		Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_INFO,
-			"SurfaceBattery : BatteryChargerId = %!GUID!\n",
+			"SM5705FG : BatteryChargerId = %!GUID!\n",
 			ChargerId);
 
 		Status = STATUS_SUCCESS;
@@ -1095,7 +1027,7 @@ Return Value:
 		ChargerStatus = (PBATTERY_CHARGER_STATUS)Buffer;
 
 		Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_INFO,
-			"SurfaceBattery : BatteryChargingSource Type = %d\n",
+			"SM5705FG : BatteryChargingSource Type = %d\n",
 			ChargerStatus->Type);
 
 		if (ChargerStatus->Type == BatteryChargingSourceType_USB)
@@ -1103,13 +1035,13 @@ Return Value:
 			UsbChargerStatus = (PBATTERY_USB_CHARGER_STATUS)Buffer;
 
 			Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_INFO,
-				"SurfaceBattery : BatteryChargingSourceType_USB: Flags = %d, MaxCurrent = %d, Voltage = %d, PortType = %d, PortId = %llu, OemCharger = %!GUID!\n",
+				"SM5705FG : BatteryChargingSourceType_USB: Flags = %d, MaxCurrent = %d, Voltage = %d, PortType = %d, PortId = %llu, OemCharger = %!GUID!\n",
 				UsbChargerStatus->Flags, UsbChargerStatus->MaxCurrent, UsbChargerStatus->Voltage, UsbChargerStatus->PortType, UsbChargerStatus->PortId, &UsbChargerStatus->OemCharger);
 
 			UsbFnPortType = (USBFN_PORT_TYPE)(UINT64)UsbChargerStatus->PowerSourceInformation;
 
 			Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_INFO,
-				"SurfaceBattery : UsbFnPortType = %d\n",
+				"SM5705FG : UsbFnPortType = %d\n",
 				UsbFnPortType);
 		}
 

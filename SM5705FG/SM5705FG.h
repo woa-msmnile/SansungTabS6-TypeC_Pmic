@@ -4,7 +4,7 @@ Copyright (c) Microsoft Corporation. All rights reserved.
 
 Module Name:
 
-    SurfaceBattery.h
+    SM5705FG.h
 
 Abstract:
 
@@ -129,13 +129,13 @@ WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(SURFACE_BATTERY_FDO_DATA, GetDeviceExtension)
 
 _IRQL_requires_same_
 VOID
-SurfaceBatteryPrepareHardware(
+SM5705FGPrepareHardware(
     _In_ WDFDEVICE Device
 );
 
-BCLASS_QUERY_TAG_CALLBACK SurfaceBatteryQueryTag;
-BCLASS_QUERY_INFORMATION_CALLBACK SurfaceBatteryQueryInformation;
-BCLASS_SET_INFORMATION_CALLBACK SurfaceBatterySetInformation;
-BCLASS_QUERY_STATUS_CALLBACK SurfaceBatteryQueryStatus;
-BCLASS_SET_STATUS_NOTIFY_CALLBACK SurfaceBatterySetStatusNotify;
-BCLASS_DISABLE_STATUS_NOTIFY_CALLBACK SurfaceBatteryDisableStatusNotify;
+BCLASS_QUERY_TAG_CALLBACK SM5705FGQueryTag;
+BCLASS_QUERY_INFORMATION_CALLBACK SM5705FGQueryInformation;
+BCLASS_SET_INFORMATION_CALLBACK SM5705FGSetInformation;
+BCLASS_QUERY_STATUS_CALLBACK SM5705FGQueryStatus;
+BCLASS_SET_STATUS_NOTIFY_CALLBACK SM5705FGSetStatusNotify;
+BCLASS_DISABLE_STATUS_NOTIFY_CALLBACK SM5705FGDisableStatusNotify;

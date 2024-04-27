@@ -42,10 +42,10 @@ typedef struct _SPB_CONTEXT
 
 NTSTATUS
 SpbReadDataSynchronously(
-	_In_ SPB_CONTEXT* SpbContext,
-	_In_ UCHAR Address,
+	IN SPB_CONTEXT* SpbContext,
+	IN UCHAR Address,
 	_In_reads_bytes_(Length) PVOID Data,
-	_In_ ULONG Length
+	IN ULONG Length
 );
 
 VOID

@@ -19,7 +19,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="SurfaceBattery.inf">
+    <Inf Include="SM5705FG.inf">
       <Filter>Driver Files</Filter>
     </Inf>
   </ItemGroup>
@@ -27,10 +27,16 @@
     <ClInclude Include="Trace.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SurfaceBattery.h">
+    <ClInclude Include="SM5705FG.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Spb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sm5705_fuelgauge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sm5705_fuelgauge_impl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

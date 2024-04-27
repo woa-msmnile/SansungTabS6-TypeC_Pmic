@@ -4,7 +4,7 @@
 ;
 ;Module Name:
 ;
-;    SurfaceBattery.inf
+;    SM5705FG.inf
 ;
 ;Abstract:
 ;
@@ -18,7 +18,7 @@ Class=Battery
 ClassGuid={72631e54-78a4-11d0-bcf7-00aa00b7b32a}
 Provider=%ProviderName%
 DriverVer = 06/15/2020,2.35.139.0
-CatalogFile=SurfaceBattery.cat
+CatalogFile=SM5705FG.cat
 PnpLockdown=1
 
 [DestinationDirs]
@@ -28,7 +28,7 @@ DefaultDestDir = 13
 1 = %DiskId1%,,,""
 
 [SourceDisksFiles]
-SurfaceBattery.sys  = 1,,
+SM5705FG.sys  = 1,,
 
 ;*****************************************
 ; Surface Battery Mini Class Install Section
@@ -38,29 +38,29 @@ SurfaceBattery.sys  = 1,,
 %ProviderName%=Standard,NT$ARCH$
 
 [Standard.NT$ARCH$]
-%SurfaceBattery.DeviceDesc% = SurfaceBattery_Device, ACPI\BQ27742
+%SM5705FG.DeviceDesc% = SM5705FG_Device, ACPI\BQ27742
 
-[SurfaceBattery_Device.NT]
-CopyFiles=SurfaceBattery_Device_Drivers
+[SM5705FG_Device.NT]
+CopyFiles=SM5705FG_Device_Drivers
 Include=battery.inf
 Needs=Battery_Inst
 
-[SurfaceBattery_Device_Drivers]
-SurfaceBattery.sys
+[SM5705FG_Device_Drivers]
+SM5705FG.sys
 
 ;-------------- Service installation
 
-[SurfaceBattery_Device.NT.Services]
-AddService = SurfaceBattery,%SPSVCINST_ASSOCSERVICE%,SurfaceBattery_Service_Inst
+[SM5705FG_Device.NT.Services]
+AddService = SM5705FG,%SPSVCINST_ASSOCSERVICE%,SM5705FG_Service_Inst
 
-; -------------- SurfaceBattery driver install sections
+; -------------- SM5705FG driver install sections
 
-[SurfaceBattery_Service_Inst]
-DisplayName    = %SurfaceBattery.SVCDESC%
+[SM5705FG_Service_Inst]
+DisplayName    = %SM5705FG.SVCDESC%
 ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
 StartType      = 3               ; SERVICE_DEMAND_START
 ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
-ServiceBinary  = %13%\SurfaceBattery.sys
+ServiceBinary  = %13%\SM5705FG.sys
 
 ;*****************************************
 ; Literals
@@ -68,7 +68,7 @@ ServiceBinary  = %13%\SurfaceBattery.sys
 
 [Strings]
 SPSVCINST_ASSOCSERVICE= 0x00000002
-ProviderName = "Surface"
-DiskId1 = "Surface Battery Mini Class Installation Disk"
-SurfaceBattery.DeviceDesc = "Surface Battery"
-SurfaceBattery.SVCDESC = "Surface Battery"
+ProviderName = "Samsung"
+DiskId1 = "Samsung SM5705 Fuel Gauge Mini Class Installation Disk"
+SM5705FG.DeviceDesc = "Samsung SM5705 Fuel Gauge"
+SM5705FG.SVCDESC = "Samsung SM5705 Fuel Gauge"

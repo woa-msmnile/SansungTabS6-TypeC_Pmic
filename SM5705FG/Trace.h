@@ -24,7 +24,7 @@ Environment:
 
 #define WPP_CONTROL_GUIDS                                              \
     WPP_DEFINE_CONTROL_GUID(                                           \
-        SurfaceBatteryTraceGuid, (14561be7,750a,4bc3,a619,d116c2e3e4d0), \
+        SM5705FGTraceGuid, (14561be7,750a,4bc3,a619,d116c2e3e4d0), \
                                                                             \
         WPP_DEFINE_BIT(SURFACE_BATTERY_ERROR)                              \
         WPP_DEFINE_BIT(SURFACE_BATTERY_WARN)                                   \
