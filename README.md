@@ -5,6 +5,8 @@
 * This driver is designed for the Smaung SM5705 Fuel Gauges found in the Samsung Galaxy Tab S6 LTE/WIFI. 
 * This driver enables Windows to get information about battery packs used in Samsung Galaxy Tab S6 LTE/WIFI. It does not provide charging capabilities.
 * **The driver still has many battery functions that have not been implemented yet, please note!**
+## Future plans
+* Because the USB and charging parts of Samsung Galaxy Tab S6 (WIFI) do not use PM8150B, we plan to modify the driver to control multiple I2C devices for better coordination.
 ## ACPI Sample
 
 ```asl
@@ -27,6 +29,7 @@ Device(SFG1)
 }
 ```
 ## Acknowledgements
-* Gustave Monce
-* WOA-Project
-* sunflower2333
+* [Gustave Monce](https://github.com/gus33000)
+* [WOA-Project](https://github.com/WOA-Project)
+* [WOA-Msmnile](https://github.com/woa-msmnile)
+* [sunflower2333](https://github.com/sunflower2333)
