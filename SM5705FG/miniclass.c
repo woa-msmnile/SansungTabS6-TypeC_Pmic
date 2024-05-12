@@ -639,9 +639,13 @@ Return Value:
 			Temperature = 0;
 		}
 		else {
-			Temperature = ((ret_Temperature & 0x7F00) >> 8) * 10; //integer bit
+			Temperature = ((ret_Temperature & 0x7F00) >> 8) * 10;                  //integer bit
 			Temperature = Temperature + (((ret_Temperature & 0x00f0) * 10) / 256); // integer + fractional bit
+			if (ret_Temperature & 0x8000)
+				Temperature *= -1;
 		}
+
+		Temperature = (ULONG)Temperature / (ULONG)10;
 
 		Trace(
 			TRACE_LEVEL_INFORMATION,
