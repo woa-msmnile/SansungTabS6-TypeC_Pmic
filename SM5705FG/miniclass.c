@@ -179,52 +179,6 @@ Return Value:
 }
 
 NTSTATUS
-SM5705FGGetManufacturerBlockA(
-	PSURFACE_BATTERY_FDO_DATA DevExt,
-	PBQ27742_MANUF_INFO_TYPE ManufacturerBlockInfoA
-)
-{
-	NTSTATUS Status;
-	ULONG ResultValue;
-	BYTE Data[32] = { 0 };
-	LARGE_INTEGER delay = { 0 };
-
-	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Entering %!FUNC!\n");
-
-	ResultValue = 0x01;
-	/*
-	Status = SpbWriteDataSynchronously(&DevExt->I2CContext, 0x3F, &ResultValue, 1);
-	if (!NT_SUCCESS(Status))
-	{
-		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbWriteDataSynchronously failed with Status = 0x%08lX\n", Status);
-		goto Exit;
-	}
-	*/
-	delay.QuadPart = RELATIVE(MILLISECONDS(1));
-	Status = KeDelayExecutionThread(KernelMode, TRUE, &delay);
-	if (!NT_SUCCESS(Status))
-	{
-		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "KeDelayExecutionThread failed with Status = 0x%08lX\n", Status);
-		goto Exit;
-	}
-	
-	Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x40, Data, sizeof(Data));
-	if (!NT_SUCCESS(Status))
-	{
-		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
-		goto Exit;
-	}
-
-	RtlCopyMemory(ManufacturerBlockInfoA, Data, sizeof(BQ27742_MANUF_INFO_TYPE));
-
-Exit:
-	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE,
-		"Leaving %!FUNC!: Status = 0x%08lX\n",
-		Status);
-	return Status;
-}
-
-NTSTATUS
 SM5705FGQueryBatteryInformation(
 	PSURFACE_BATTERY_FDO_DATA DevExt,
 	PBATTERY_INFORMATION BatteryInformationResult
@@ -433,8 +387,6 @@ Return Value:
 	WCHAR StringResult[MAX_BATTERY_STRING_SIZE] = { 0 };
 	BATTERY_MANUFACTURE_DATE ManufactureDate = { 0 };
 
-	BQ27742_MANUF_INFO_TYPE ManufacturerBlockInfoA = { 0 };
-
 	int ret_Temperature = 0;
 	int Temperature = 0;
 	USHORT DateData = 0;
@@ -576,7 +528,6 @@ Return Value:
 		break;
 
 		case BatterySerialNumber:
-
 
 		swprintf_s(StringResult, sizeof(StringResult) / sizeof(WCHAR), L"%u", (UINT32)5705);
 
