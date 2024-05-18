@@ -36,10 +36,10 @@
     <ClInclude Include="..\SM5705FuelGauge\sm5705_fuelgauge.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\SM5705FuelGauge\sm5705_fuelgauge_impl.h">
+    <ClInclude Include="..\S2MM005\s2mm005.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\S2MM005\s2mm005.h">
+    <ClInclude Include="..\PTN36502\ptm36502.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

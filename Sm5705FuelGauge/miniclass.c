@@ -22,7 +22,7 @@ Abstract:
 #include "usbfnbase.h"
 #include "miniclass.tmh"
 
-#include "sm5705_fuelgauge_impl.h"
+#include "sm5705_fuelgauge.h"
 
 #include "../S2MM005/s2mm005.h"
 
@@ -700,9 +700,14 @@ Return Value:
 	int              ret_Current = 0;
 	int              USB_CC_Status = 0;
 
-	SpbReadDataSynchronouslyFromAnyAddr(&DevExt->I2CContextCCIC, s2mm005_Read_Status, &USB_CC_Status, sizeof(s2mm005_Read_Status),1);
+	Status = SpbReadDataSynchronouslyFromAnyAddr(&DevExt->I2CContextCCIC, s2mm005_Read_Status, &USB_CC_Status, sizeof(s2mm005_Read_Status), 1);
+	if (!NT_SUCCESS(Status))
+	{
+		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
+		goto QueryStatusEnd;
+	}
 
-	Trace(TRACE_LEVEL_INFORMATION,SURFACE_BATTERY_TRACE,"USB_CC_Status: %d \n", USB_CC_Status);
+	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "USB_CC_Status: %d \n", USB_CC_Status);
 
 	switch (USB_CC_Status) {
 	case 0x11:

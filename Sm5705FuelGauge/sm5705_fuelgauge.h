@@ -1,7 +1,7 @@
 /*
- * drivers/battery/sm5705_fuelgauge.h
+ * sm5705_fuelgauge-impl.h
  *
- * Header of SiliconMitus SM5705 Fuelgauge Driver
+ * Header of SiliconMitus SM5705 Fuelgauge Driver Implementation
  *
  * Copyright (C) 2015 SiliconMitus
  * Author: SW Jung
@@ -12,201 +12,110 @@
  * of the License, or (at your option) any later version.
  */
 
-#ifndef SM5705_FUELGAUGE_H
-#define SM5705_FUELGAUGE_H
+#ifndef SM5705_FUELGAUGE_IMPL_H
+#define SM5705_FUELGAUGE_IMPL_H
 
-#define FG_DRIVER_VER "0.0.0.1"
+/* Definitions of SM5705 Fuelgauge Registers */
+// I2C Register
+#define SM5705_REG_DEVICE_ID			0x00
+#define SM5705_REG_CNTL				0x01
+#define SM5705_REG_INTFG			0x02
+#define SM5705_REG_INTFG_MASK			0x03
+#define SM5705_REG_STATUS			0x04
+#define SM5705_REG_SOC				0x05
+#define SM5705_REG_OCV				0x06
+#define SM5705_REG_VOLTAGE			0x07
+#define SM5705_REG_CURRENT			0x08
+#define SM5705_REG_TEMPERATURE			0x09
+#define SM5705_REG_SOC_CYCLE			0x0A
+#define SM5705_REG_V_ALARM			0x0C
+#define SM5705_REG_T_ALARM			0x0D
+#define SM5705_REG_SOC_ALARM			0x0E
+#define SM5705_REG_FG_OP_STATUS			0x10
+#define SM5705_REG_TOPOFFSOC			0x12
+#define SM5705_REG_PARAM_CTRL			0x13
+#define SM5705_REG_PARAM_RUN_UPDATE		0x14
+#define SM5705_REG_SOC_CYCLE_CFG		0x15
+#define SM5705_REG_VIT_PERIOD			0x1A
+#define SM5705_REG_MIX_RATE			0x1B
+#define SM5705_REG_MIX_INIT_BLANK		0x1C
+#define SM5705_REG_RESERVED			0x1F
+#define SM5705_REG_RCE0				0x20
+#define SM5705_REG_RCE1				0x21
+#define SM5705_REG_RCE2				0x22
+#define SM5705_REG_DTCD				0x23
+#define SM5705_REG_AUTO_RS_MAN			0x24
+#define SM5705_REG_RS_MIX_FACTOR		0x25
+#define SM5705_REG_RS_MAX			0x26
+#define SM5705_REG_RS_MIN			0x27
+#define SM5705_REG_RS_TUNE			0x28
+#define SM5705_REG_RS_MAN			0x29
+//for cal
+#define SM5705_REG_CURR_CAL			0x2C
+#define SM5705_REG_IOCV_MAN			0x2E
+#define SM5705_REG_END_V_IDX			0x2F
+#define SM5705_REG_VOLT_CAL			0x50
+#define SM5705_REG_CURR_OFF			0x51
+#define SM5705_REG_CURR_P_SLOPE			0x52
+#define SM5705_REG_CURR_N_SLOPE			0x53
+#define SM5705_REG_CURRLCAL_0			0x54
+#define SM5705_REG_CURRLCAL_1			0x55
+#define SM5705_REG_CURRLCAL_2			0x56
+//for debug
+#define SM5705_REG_OCV_STATE			0x80
+#define SM5705_REG_CURRENT_EST			0x85
+#define SM5705_REG_CURRENT_ERR			0x86
+#define SM5705_REG_Q_EST			0x87
+#define SM5705_AUX_STAT				0x94
+//etc
+#define SM5705_REG_MISC				0x90
+#define SM5705_REG_RESET			0x91
+#define SM5705_FG_INIT_MARK			0xA000
+#define SM5705_FG_PARAM_UNLOCK_CODE		0x3700
+#define SM5705_FG_PARAM_LOCK_CODE		0x0000
+#define SM5705_FG_TABLE_LEN			0xF//real table length -1
+//start reg addr for table
+#define SM5705_REG_TABLE_START			0xA0
+#define SM5705_REG_IOCV_B_L_MIN			0x30
+#define SM5705_REG_IOCV_B_L_MAX			0x35
+#define SM5705_REG_IOCV_B_C_MIN			0x36
+#define SM5705_REG_IOCV_B_C_MAX			0x3B
+#define SM5705_REG_IOCI_B_L_MIN			0x40
+#define SM5705_REG_IOCI_B_L_MAX			0x45
+#define SM5705_REG_IOCI_B_C_MIN			0x46
+#define SM5705_REG_IOCI_B_C_MAX			0x4B
+#define SW_RESET_CODE				0x00A6
+#define SW_RESET_OTP_CODE			0x01A6
+#define RS_MAN_CNTL				0x0800
+// control register value
+#define ENABLE_MIX_MODE				0x8000
+#define ENABLE_TEMP_MEASURE			0x4000
+#define ENABLE_TOPOFF_SOC			0x2000
+#define ENABLE_RS_MAN_MODE			0x0800
+#define ENABLE_MANUAL_OCV			0x0400
+#define ENABLE_MODE_nENQ4			0x0200
+#define ENABLE_SOC_ALARM			0x0008
+#define ENABLE_T_H_ALARM			0x0004
+#define ENABLE_T_L_ALARM			0x0002
+#define ENABLE_V_ALARM				0x0001
+#define CNTL_REG_DEFAULT_VALUE			0x2008
+#define INIT_CHECK_MASK				0x0010
+#define DISABLE_RE_INIT				0x0010
+#define SM5705_JIG_CONNECTED			0x0001
+#define SM5705_BATTERY_VERSION			0x00F0
+#define TOPOFF_SOC_97				0x111
+#define TOPOFF_SOC_96				0x110
+#define TOPOFF_SOC_95				0x101
+#define TOPOFF_SOC_94				0x100
+#define TOPOFF_SOC_93				0x011
+#define TOPOFF_SOC_92				0x010
+#define TOPOFF_SOC_91				0x001
+#define TOPOFF_SOC_90				0x000
+#define MASK_L_SOC_INT				0x0008
+#define MASK_H_TEM_INT				0x0004
+#define MASK_L_TEM_INT				0x0002
+#define MASK_L_VOL_INT				0x0001
+#define FULL_SOC				100
 
-struct cv_slope {
-	int fg_current;
-	int soc;
-	int time;
-};
-enum {
-	SDI_BATTERY_TYPE = 0,
-	ATL_BATTERY_TYPE,
-	UNKNOWN_TYPE
-};
-struct battery_data_t {
-	const int battery_type; /* 4200 or 4350 or 4400*/
-	const int battery_table[3][16];
-	const int rce_value[3];
-	const int dtcd_value;
-	const int rs_value[4];
-	const int vit_period;
-	const int mix_value[2];
-	const int topoff_soc[2];
-	const int volt_cal;
-	const int curr_cal;
-	const int temp_std;
-	const int temp_offset;
-	const int temp_offset_cal;
-};
-struct sec_fg_info {
-	/* Device_id */
-	int device_id;
-	/* State Of Connect */
-	int online;
-	/* battery SOC (capacity) */
-	int batt_soc;
-	/* battery voltage */
-	int batt_voltage;
-	/* battery AvgVoltage */
-	int batt_avgvoltage;
-	/* battery OCV */
-	int batt_ocv;
-	/* Current */
-	int batt_current;
-	/* battery Avg Current */
-	int batt_avgcurrent;
-	/* battery SOC cycle */
-	int batt_soc_cycle;
-	struct battery_data_t* comp_pdata;
-	// struct mutex param_lock;
-	/* copy from platform data /
-	 * DTS or update by shell script */
-	// struct mutex io_lock;
-	struct device* dev;
-	// int32_t temperature;; /* 0.1 deg C*/
-	// int32_t temp_fg;; /* 0.1 deg C*/
-	/* register programming */
-	int reg_addr;
-	// u8 reg_data[2];
-	int battery_typ;        /*SDI_BATTERY_TYPE or ATL_BATTERY_TYPE*/
-	int batt_id_adc_check;
-	int battery_table[3][16];
-#if defined(CONFIG_BATTERY_AGE_FORECAST)
-	int v_max_table[5];
-	int q_max_table[5];
-	int v_max_now;
-	int q_max_now;
-#endif
-	int rce_value[3];
-	int dtcd_value;
-	int rs_value[5]; /*rs p_mix_factor n_mix_factor max min*/
-	int vit_period;
-	int mix_value[2]; /*mix_rate init_blank*/
-	int misc;
-	int enable_topoff_soc;
-	int topoff_soc;
-	int top_off;
-	int cycle_high_limit;
-	int cycle_low_limit;
-	int cycle_limit_cntl;
-	int enable_v_offset_cancel_p;
-	int enable_v_offset_cancel_n;
-	int v_offset_cancel_level;
-	int v_offset_cancel_mohm;
-	int volt_cal;
-	int curr_offset;
-	int p_curr_cal;
-	int n_curr_cal;
-	int curr_lcal_en;
-	int curr_lcal_0;
-	int curr_lcal_1;
-	int curr_lcal_2;
-	int en_auto_curr_offset;
-	int cntl_value;
-#ifdef ENABLE_FULL_OFFSET
-	int full_offset_margin;
-	int full_extra_offset;
-#endif
-	int temp_std;
-	int en_fg_temp_volcal;
-	int fg_temp_volcal_denom;
-	int fg_temp_volcal_fact;
-	int en_high_fg_temp_offset;
-	int high_fg_temp_offset_denom;
-	int high_fg_temp_offset_fact;
-	int en_low_fg_temp_offset;
-	int low_fg_temp_offset_denom;
-	int low_fg_temp_offset_fact;
-	int en_high_fg_temp_cal;
-	int high_fg_temp_p_cal_denom;
-	int high_fg_temp_p_cal_fact;
-	int high_fg_temp_n_cal_denom;
-	int high_fg_temp_n_cal_fact;
-	int en_low_fg_temp_cal;
-	int low_fg_temp_p_cal_denom;
-	int low_fg_temp_p_cal_fact;
-	int low_fg_temp_n_cal_denom;
-	int low_fg_temp_n_cal_fact;
-	int en_high_temp_cal;
-	int high_temp_p_cal_denom;
-	int high_temp_p_cal_fact;
-	int high_temp_n_cal_denom;
-	int high_temp_n_cal_fact;
-	int en_low_temp_cal;
-	int low_temp_p_cal_denom;
-	int low_temp_p_cal_fact;
-	int low_temp_n_cal_denom;
-	int low_temp_n_cal_fact;
-	int battery_type; /* 4200 or 4350 or 4400*/
-	int data_ver;
-	// uint32_t soc_alert_flag : 1;  /* 0 : nu-occur, 1: occur */
-	// uint32_t volt_alert_flag : 1; /* 0 : nu-occur, 1: occur */
-	// uint32_t flag_full_charge : 1; /* 0 : no , 1 : yes*/
-	// uint32_t flag_chg_status : 1; /* 0 : discharging, 1: charging*/
-	// uint32_t flag_charge_health : 1; /* 0 : no , 1 : good*/
-	// int32_t irq_ctrl;
-	int value_v_alarm;
-	// uint32_t is_FG_initialised;
-	int iocv_error_count;
-	int n_tem_poff;
-	int n_tem_poff_offset;
-	int l_tem_poff;
-	int l_tem_poff_offset;
-	/* previous battery voltage current*/
-	int p_batt_voltage;
-	int p_batt_current;
-};
-struct sec_fuelgauge_info {
-	struct i2c_client* client;
-	// sec_battery_platform_data_t* pdata;
-	// struct power_supply* psy_fg;
-	// struct delayed_work isr_work;
-	int cable_type;
-	bool is_charging;
-	bool ta_exist;
-	/* HW-dedicated fuel guage info structure
-	 * used in individual fuel gauge file only
-	 * (ex. dummy_fuelgauge.c)
-	 */
-	struct sec_fg_info info;
-	bool is_fuel_alerted;
-	bool volt_alert_flag;
-	// struct wake_lock fuel_alert_wake_lock;
-	unsigned int capacity_old;	/* only for atomic calculation */
-	unsigned int capacity_max;	/* only for dynamic calculation */
-#if defined(CONFIG_BATTERY_AGE_FORECAST)
-	unsigned int chg_full_soc; /* BATTERY_AGE_FORECAST */
-#endif
-	bool initial_update_of_soc;
-	// struct mutex fg_lock;
-	/* register programming */
-	int reg_addr;
-	// u8 reg_data[2];
-	int fg_irq;
-	int jig_gpio;
-	int capacity;
-	unsigned int ttf_capacity;
-	struct cv_slope* cv_data;
-	int cv_data_length;
-};
+#endif // SM5705_FUELGAUGE_IMPL_H
 
-// ssize_t sm5705_fg_show_attrs(struct device* dev, struct device_attribute* attr, char* buf);
-// ssize_t sm5705_fg_store_attrs(struct device* dev, struct device_attribute* attr,
-//	const char* buf, size_t count);
-
-#define SM5705_FG_ATTR(_name)				\
-{							\
-	.attr = {.name = #_name, .mode = 0664},	\
-	.show = sm5705_fg_show_attrs,			\
-	.store = sm5705_fg_store_attrs,			\
-}
-enum {
-	FG_REG = 0,
-	FG_DATA,
-	FG_REGS,
-};
-#endif // SM5705_FUELGAUGE_H
