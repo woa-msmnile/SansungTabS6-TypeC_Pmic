@@ -25,12 +25,17 @@ Environment:
 #define WPP_CONTROL_GUIDS                                              \
     WPP_DEFINE_CONTROL_GUID(                                           \
         SM5705FGTraceGuid, (14561be7,750a,4bc3,a619,d116c2e3e4d0), \
-                                                                            \
+        /* BATTERY */                                                      \
         WPP_DEFINE_BIT(SURFACE_BATTERY_ERROR)                              \
-        WPP_DEFINE_BIT(SURFACE_BATTERY_WARN)                                   \
-        WPP_DEFINE_BIT(SURFACE_BATTERY_TRACE)                                   \
-        WPP_DEFINE_BIT(SURFACE_BATTERY_INFO)                                    \
-        )                             
+        WPP_DEFINE_BIT(SURFACE_BATTERY_WARN)                               \
+        WPP_DEFINE_BIT(SURFACE_BATTERY_TRACE)                              \
+        WPP_DEFINE_BIT(SURFACE_BATTERY_INFO)                               \
+        /* Other Chips */                                                  \
+        WPP_DEFINE_BIT(SURFACE_OTHER_ERROR)                              \
+        WPP_DEFINE_BIT(SURFACE_OTHER_WARN)                               \
+        WPP_DEFINE_BIT(SURFACE_OTHER_TRACE)                              \
+        WPP_DEFINE_BIT(SURFACE_OTHER_INFO)                               \
+        )
 
 #define WPP_FLAG_LEVEL_LOGGER(flag, level)                                  \
     WPP_LEVEL_LOGGER(flag)
