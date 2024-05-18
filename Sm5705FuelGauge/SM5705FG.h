@@ -26,10 +26,10 @@ Abstract:
 #include <wmistr.h>
 #include <wmilib.h>
 #include <ntstrsafe.h>
-#include "trace.h"
+#include "..\SamsungEC\trace.h"
 #define RESHUB_USE_HELPER_ROUTINES
 #include <reshub.h>
-#include "spb.h"
+#include "..\SamsungEC\spb.h"
 
 //--------------------------------------------------------------------- Literals
 
@@ -111,6 +111,8 @@ typedef struct {
     // Spb (I2C) related members used for the lifetime of the device
     //
     SPB_CONTEXT I2CContext;
+    SPB_CONTEXT I2CContextPTN;
+    SPB_CONTEXT I2CContextCCIC;
 
     //
     // Battery state

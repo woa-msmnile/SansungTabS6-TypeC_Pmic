@@ -530,10 +530,8 @@ Return Value:
 --*/
 
 {
-	NTSTATUS status = STATUS_INSUFFICIENT_RESOURCES;
-	PCM_PARTIAL_RESOURCE_DESCRIPTOR res, resRaw;
+	NTSTATUS status = STATUS_SUCCESS;
 	ULONG resourceCount;
-	ULONG i;
 
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Entering %!FUNC!\n");
 	PAGED_CODE();
@@ -546,22 +544,63 @@ Return Value:
 	// Get the resouce hub connection ID for our I2C driver
 	//
 	resourceCount = WdfCmResourceListGetCount(ResourcesTranslated);
+	BOOLEAN FoundSM5705FG = FALSE;
+	BOOLEAN FoundPTN = FALSE;
+	BOOLEAN FoundCCIC = FALSE;
 
-	for (i = 0; i < resourceCount; i++)
+	for (ULONG i = 0; i < resourceCount; i++)
 	{
-		res = WdfCmResourceListGetDescriptor(ResourcesTranslated, i);
-		resRaw = WdfCmResourceListGetDescriptor(ResourcesRaw, i);
+		PCM_PARTIAL_RESOURCE_DESCRIPTOR pDescriptor;
+		UCHAR Class;
+		UCHAR Type;
 
-		if (res->Type == CmResourceTypeConnection &&
-			res->u.Connection.Class == CM_RESOURCE_CONNECTION_CLASS_SERIAL &&
-			res->u.Connection.Type == CM_RESOURCE_CONNECTION_TYPE_SERIAL_I2C)
+		pDescriptor = WdfCmResourceListGetDescriptor(
+			ResourcesTranslated, i);
+		switch (pDescriptor->Type)
 		{
-			devContext->I2CContext.I2cResHubId.LowPart =
-				res->u.Connection.IdLowPart;
-			devContext->I2CContext.I2cResHubId.HighPart =
-				res->u.Connection.IdHighPart;
+		case CmResourceTypeConnection:
 
-			status = STATUS_SUCCESS;
+			//
+			// Look for I2C or SPI resource and save connection ID.
+			//
+
+			Class = pDescriptor->u.Connection.Class;
+			Type = pDescriptor->u.Connection.Type;
+
+			// Sm5705FG
+			if ((Class == CM_RESOURCE_CONNECTION_CLASS_SERIAL) && !FoundSM5705FG &&
+				((Type == CM_RESOURCE_CONNECTION_TYPE_SERIAL_I2C)))
+			{
+				devContext->I2CContext.I2cResHubId.LowPart =
+					pDescriptor->u.Connection.IdLowPart;
+				devContext->I2CContext.I2cResHubId.HighPart =
+					pDescriptor->u.Connection.IdHighPart;
+				FoundSM5705FG = TRUE;
+				break;
+			}
+			// PTN36502
+			if ((Class == CM_RESOURCE_CONNECTION_CLASS_SERIAL) && !FoundPTN &&
+				((Type == CM_RESOURCE_CONNECTION_TYPE_SERIAL_I2C)))
+			{
+				devContext->I2CContextPTN.I2cResHubId.LowPart =
+					pDescriptor->u.Connection.IdLowPart;
+				devContext->I2CContextPTN.I2cResHubId.HighPart =
+					pDescriptor->u.Connection.IdHighPart;
+				FoundPTN = TRUE;
+				break;
+			}
+			// USBPD-S2MM005
+			if ((Class == CM_RESOURCE_CONNECTION_CLASS_SERIAL) && !FoundCCIC &&
+				((Type == CM_RESOURCE_CONNECTION_TYPE_SERIAL_I2C)))
+			{
+				devContext->I2CContextCCIC.I2cResHubId.LowPart =
+					pDescriptor->u.Connection.IdLowPart;
+				devContext->I2CContextCCIC.I2cResHubId.HighPart =
+					pDescriptor->u.Connection.IdHighPart;
+				FoundCCIC = TRUE;
+				break;
+			}
+			break;
 		}
 	}
 
@@ -580,13 +619,39 @@ Return Value:
 	// Initialize Spb so the driver can issue reads/writes
 	//
 	status = SpbTargetInitialize(Device, &devContext->I2CContext);
-
+	
 	if (!NT_SUCCESS(status))
 	{
 		Trace(
 			TRACE_LEVEL_ERROR,
 			SURFACE_BATTERY_ERROR,
-			"Error in Spb initialization - %!STATUS!",
+			"[SM5705FG] Error in Spb initialization - %!STATUS!",
+			status);
+
+		goto exit;
+	}
+	
+	status = SpbTargetInitialize(Device, &devContext->I2CContextPTN);
+	
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			SURFACE_BATTERY_ERROR,
+			"[PTN36502] Error in Spb initialization - %!STATUS!",
+			status);
+
+		goto exit;
+	}
+
+	status = SpbTargetInitialize(Device, &devContext->I2CContextCCIC);
+	
+	if (!NT_SUCCESS(status))
+	{
+		Trace(
+			TRACE_LEVEL_ERROR,
+			SURFACE_BATTERY_ERROR,
+			"[USBPD-S2MM005] Error in Spb initialization - %!STATUS!",
 			status);
 
 		goto exit;

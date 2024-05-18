@@ -18,11 +18,13 @@ Abstract:
 //--------------------------------------------------------------------- Includes
 
 #include "SM5705FG.h"
-#include "Spb.h"
+#include "..\SamsungEC\Spb.h"
 #include "usbfnbase.h"
 #include "miniclass.tmh"
 
 #include "sm5705_fuelgauge_impl.h"
+
+#include "../S2MM005/s2mm005.h"
 
 //------------------------------------------------------------------- Prototypes
 
@@ -243,7 +245,7 @@ SM5705FGQueryBatteryInformation(
 		BatteryInformationResult->CriticalBias,
 		BatteryInformationResult->CycleCount);
 
-Exit:
+//Exit:
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE,
 		"Leaving %!FUNC!: Status = 0x%08lX\n",
 		Status);
@@ -689,14 +691,31 @@ Return Value:
 		goto QueryStatusEnd;
 	}
 
-	BatteryStatus->PowerState = BATTERY_DISCHARGING;
 
 	unsigned int     Capacity = 0;
 	unsigned int     Voltage = 0;
 	int              Current = 0;
-	int              ret_Capacity = 0 ;
+	int              ret_Capacity = 0;
 	int              ret_Voltage = 0;
 	int              ret_Current = 0;
+	int              USB_CC_Status = 0;
+
+	SpbReadDataSynchronouslyFromAnyAddr(&DevExt->I2CContextCCIC, s2mm005_Read_Status, &USB_CC_Status, sizeof(s2mm005_Read_Status),1);
+
+	Trace(TRACE_LEVEL_INFORMATION,SURFACE_BATTERY_TRACE,"USB_CC_Status: %d \n", USB_CC_Status);
+
+	switch (USB_CC_Status) {
+	case 0x11:
+	case 0x1d:
+		BatteryStatus->PowerState = BATTERY_CHARGING;
+		Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Battery: Charging \n");
+		break;
+	case 0x0e:
+	default:
+		BatteryStatus->PowerState = BATTERY_DISCHARGING;
+		Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Battery: DisCharging \n");
+		break;
+	}
 
 	Status = SpbReadDataSynchronously(&DevExt->I2CContext, SM5705_REG_SOC, &ret_Capacity, 2);
 	if (!NT_SUCCESS(Status))

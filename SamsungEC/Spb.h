@@ -67,3 +67,12 @@ SpbWriteDataSynchronously(
 	IN PVOID Data,
 	IN ULONG Length
 );
+
+NTSTATUS
+SpbReadDataSynchronouslyFromAnyAddr(
+	IN SPB_CONTEXT* SpbContext,
+	_In_reads_bytes_(AddressLength) PVOID Address,
+	_In_reads_bytes_(Length) PVOID Data,
+	IN UINT8 AddressLength,
+	IN ULONG Length
+);

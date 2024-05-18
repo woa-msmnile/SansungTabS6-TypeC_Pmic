@@ -11,14 +11,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sm5705_fuelgauge.h" />
-    <ClInclude Include="sm5705_fuelgauge_impl.h" />
+    <ClInclude Include="..\S2MM005\s2mm005.h" />
+    <ClInclude Include="..\SM5705FuelGauge\sm5705_fuelgauge.h" />
+    <ClInclude Include="..\SM5705FuelGauge\sm5705_fuelgauge_impl.h" />
     <ClInclude Include="Spb.h" />
-    <ClInclude Include="SM5705FG.h" />
+    <ClInclude Include="..\SM5705FuelGauge\SM5705FG.h" />
     <ClInclude Include="Trace.h" />
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="SM5705FG.inf" />
+    <Inf Include="SamsungEc.inf" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9E870783-5446-41BB-BD4B-662089C22DBA}</ProjectGuid>
@@ -96,9 +97,9 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="miniclass.c" />
+    <ClCompile Include="..\SM5705FuelGauge\miniclass.c" />
     <ClCompile Include="Spb.c" />
-    <ClCompile Include="wdf.c" />
+    <ClCompile Include="..\SM5705FuelGauge\wdf.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
