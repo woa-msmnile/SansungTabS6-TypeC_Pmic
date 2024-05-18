@@ -97,6 +97,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\S2MM005\s2mm005.c" />
     <ClCompile Include="..\SM5705FuelGauge\miniclass.c" />
     <ClCompile Include="Spb.c" />
     <ClCompile Include="..\SM5705FuelGauge\wdf.c" />

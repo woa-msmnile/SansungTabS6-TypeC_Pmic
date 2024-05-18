@@ -53,5 +53,8 @@
     <ClCompile Include="Spb.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\S2MM005\s2mm005.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

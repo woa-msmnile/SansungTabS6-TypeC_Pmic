@@ -18,7 +18,7 @@ Abstract:
 //--------------------------------------------------------------------- Includes
 
 #include "SM5705FG.h"
-#include "..\SamsungEC\Spb.h"
+#include "../SamsungEC/Spb.h"
 #include "usbfnbase.h"
 #include "miniclass.tmh"
 
@@ -691,25 +691,17 @@ Return Value:
 		goto QueryStatusEnd;
 	}
 
-
 	unsigned int     Capacity = 0;
 	unsigned int     Voltage = 0;
 	int              Current = 0;
 	int              ret_Capacity = 0;
 	int              ret_Voltage = 0;
 	int              ret_Current = 0;
-	int              USB_CC_Status = 0;
+	ULONG            TypeC_Status;
 
-	Status = SpbReadDataSynchronouslyFromAnyAddr(&DevExt->I2CContextCCIC, s2mm005_Read_Status, &USB_CC_Status, sizeof(s2mm005_Read_Status), 1);
-	if (!NT_SUCCESS(Status))
-	{
-		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
-		goto QueryStatusEnd;
-	}
+	S2mm005_Get_TypeC_Status(DevExt, &TypeC_Status);
 
-	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "USB_CC_Status: %d \n", USB_CC_Status);
-
-	switch (USB_CC_Status) {
+	switch (TypeC_Status) {
 	case 0x11:
 	case 0x1d:
 		BatteryStatus->PowerState = BATTERY_CHARGING;

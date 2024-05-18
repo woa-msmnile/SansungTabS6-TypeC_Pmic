@@ -10,4 +10,8 @@ Module Name:
 #pragma once
 //--------------------------------------------------------------------- Includes
 
-BYTE s2mm005_Read_Status[2] = { 0x00,0x20 };//少用全局变量
+NTSTATUS
+S2mm005_Get_TypeC_Status(
+	PSURFACE_BATTERY_FDO_DATA DevExt,
+	PULONG TypeC_Status
+);
