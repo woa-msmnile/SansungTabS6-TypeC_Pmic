@@ -11,11 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\PTN36502\ptm36502.h" />
+    <ClInclude Include="..\PTN36502\ptn36502.h" />
     <ClInclude Include="..\S2MM005\s2mm005.h" />
     <ClInclude Include="..\SM5705FuelGauge\sm5705_fuelgauge.h" />
+    <ClInclude Include="SamsungEC.h" />
     <ClInclude Include="Spb.h" />
-    <ClInclude Include="..\SM5705FuelGauge\SM5705FG.h" />
     <ClInclude Include="Trace.h" />
   </ItemGroup>
   <ItemGroup>
@@ -97,10 +97,12 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\PTN36502\ptn36502.c" />
     <ClCompile Include="..\S2MM005\s2mm005.c" />
     <ClCompile Include="..\SM5705FuelGauge\miniclass.c" />
+    <ClCompile Include="..\Sm5705FuelGauge\sm5705_fuelgauge.c" />
     <ClCompile Include="Spb.c" />
-    <ClCompile Include="..\SM5705FuelGauge\wdf.c" />
+    <ClCompile Include="wdf.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -22,7 +22,7 @@
 
 --*/
 
-#include "..\SM5705FuelGauge\SM5705FG.h"
+#include "../SamsungEC/SamsungEC.h"
 #include "spb.h"
 #include <spb.tmh>
 

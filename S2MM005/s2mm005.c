@@ -7,8 +7,7 @@ Module Name:
 --*/
 
 //--------------------------------------------------------------------- Includes
-
-#include "../Sm5705FuelGauge/SM5705FG.h"
+#include "../SamsungEC/SamsungEC.h"
 #include "../SamsungEC/Spb.h"
 #include "../S2MM005/s2mm005.h"
 #include "s2mm005.tmh"

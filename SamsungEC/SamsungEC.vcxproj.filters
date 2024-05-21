@@ -27,9 +27,6 @@
     <ClInclude Include="Trace.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\SM5705FuelGauge\SM5705FG.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Spb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -39,14 +36,14 @@
     <ClInclude Include="..\S2MM005\s2mm005.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\PTN36502\ptm36502.h">
+    <ClInclude Include="..\PTN36502\ptn36502.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SamsungEC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\SM5705FuelGauge\wdf.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\SM5705FuelGauge\miniclass.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -54,6 +51,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\S2MM005\s2mm005.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PTN36502\ptn36502.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wdf.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Sm5705FuelGauge\sm5705_fuelgauge.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

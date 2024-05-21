@@ -17,7 +17,7 @@ Abstract:
 
 //--------------------------------------------------------------------- Includes
 
-#include "SM5705FG.h"
+#include "../SamsungEC/SamsungEC.h"
 #include "wdf.tmh"
 
 //------------------------------------------------------------------- Prototypes
