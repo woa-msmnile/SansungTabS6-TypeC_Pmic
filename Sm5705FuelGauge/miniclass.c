@@ -679,7 +679,7 @@ Return Value:
 	switch (TypeC_Status) {
 	case 0x11:
 	case 0x1d:
-		BatteryStatus->PowerState = BATTERY_CHARGING;
+		BatteryStatus->PowerState = BATTERY_POWER_ON_LINE;
 		Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Battery: Charging \n");
 		break;
 	case 0x0e:
