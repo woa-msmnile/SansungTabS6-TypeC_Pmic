@@ -26,6 +26,7 @@ sm5705_Get_CycleCount(
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
+		goto Exit;
 	}
 	if (ret_cycle < 0) {
 		cycle = 0;
@@ -57,6 +58,7 @@ sm5705_Get_Temperature(
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
+		goto Exit;
 	}
 	if (ret_Temperature < 0) {
 		temp = 0;
@@ -91,6 +93,7 @@ sm5705_Get_Capacity(
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
+		goto Exit;
 	}
 	if (ret_Capacity < 0) {
 		soc = 500;
@@ -123,6 +126,7 @@ sm5705_Get_Voltage(
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
+		goto Exit;
 	}
 	if (ret_Voltage < 0) {
 		vbat = 4000;
@@ -155,6 +159,7 @@ sm5705_Get_Current(
 	if (!NT_SUCCESS(Status))
 	{
 		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
+		goto Exit;
 	}
 	if (ret_Current < 0)
 	{

@@ -212,7 +212,12 @@ SM5705FGQueryBatteryInformation(
 	BatteryInformationResult->CriticalBias = 0;
 
 
-	sm5705_Get_CycleCount(DevExt, &CycleCount);
+	Status = sm5705_Get_CycleCount(DevExt, &CycleCount);
+	if (!NT_SUCCESS(Status))
+	{
+		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "sm5705 Get CycleCount failed with Status = 0x%08lX\n", Status);
+		goto Exit;
+	}
 
 	BatteryInformationResult->CycleCount = CycleCount;
 
@@ -237,7 +242,7 @@ SM5705FGQueryBatteryInformation(
 		BatteryInformationResult->CriticalBias,
 		BatteryInformationResult->CycleCount);
 
-//Exit:
+Exit:
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE,
 		"Leaving %!FUNC!: Status = 0x%08lX\n",
 		Status);
@@ -247,74 +252,19 @@ SM5705FGQueryBatteryInformation(
 NTSTATUS
 SM5705FGQueryBatteryEstimatedTime(
 	PSURFACE_BATTERY_FDO_DATA DevExt,
-	LONG AtRate,
 	PULONG ResultValue
 )
 {
 	NTSTATUS Status = STATUS_SUCCESS;
-	UCHAR Flags = 0;
-	UINT16 ETA = 0;
 
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Entering %!FUNC!\n");
 
-	if (AtRate == 0)
-	{
-		Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x0A, &Flags, 2);
-		if (!NT_SUCCESS(Status))
-		{
-			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
-			goto Exit;
-		}
+	*ResultValue = BATTERY_UNKNOWN_TIME;
 
-		if (Flags & (1 << 0) || Flags & (1 << 1))
-		{
-			Status = SpbReadDataSynchronously(&DevExt->I2CContext, 0x16, &ETA, 2);
-			if (!NT_SUCCESS(Status))
-			{
-				Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
-				goto Exit;
-			}
-
-			if (ETA == 0xFFFF)
-			{
-				*ResultValue = BATTERY_UNKNOWN_TIME;
-
-				Trace(
-					TRACE_LEVEL_INFORMATION,
-					SURFACE_BATTERY_TRACE,
-					"BatteryEstimatedTime: BATTERY_UNKNOWN_TIME\n");
-			}
-			else
-			{
-				*ResultValue = ETA * 60; // Seconds
-
-				Trace(
-					TRACE_LEVEL_INFORMATION,
-					SURFACE_BATTERY_TRACE,
-					"BatteryEstimatedTime: %d seconds\n",
-					*ResultValue);
-			}
-		}
-		else
-		{
-			*ResultValue = BATTERY_UNKNOWN_TIME;
-
-			Trace(
-				TRACE_LEVEL_INFORMATION,
-				SURFACE_BATTERY_TRACE,
-				"BatteryEstimatedTime: BATTERY_UNKNOWN_TIME\n");
-		}
-	}
-	else
-	{
-		*ResultValue = BATTERY_UNKNOWN_TIME;
-
-		Trace(
-			TRACE_LEVEL_INFORMATION,
-			SURFACE_BATTERY_TRACE,
-			"BatteryEstimatedTime: BATTERY_UNKNOWN_TIME for AtRate = %d\n",
-			AtRate);
-	}
+	Trace(
+		TRACE_LEVEL_INFORMATION,
+		SURFACE_BATTERY_TRACE,
+		"BatteryEstimatedTime: BATTERY_UNKNOWN_TIME \n");
 
 Exit:
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE,
@@ -371,7 +321,6 @@ Return Value:
 
 {
 	PSURFACE_BATTERY_FDO_DATA DevExt;
-	ULONG ResultValue;
 	PVOID ReturnBuffer;
 	size_t ReturnBufferLength;
 	NTSTATUS Status;
@@ -383,6 +332,7 @@ Return Value:
 
 	ULONG  Temperature;
 	USHORT DateData = 0;
+	ULONG ResultValue;
 
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Entering %!FUNC!\n");
 	PAGED_CODE();
@@ -417,7 +367,7 @@ Return Value:
 		break;
 
 	case BatteryEstimatedTime:
-		Status = SM5705FGQueryBatteryEstimatedTime(DevExt, AtRate, &ResultValue);
+		Status = SM5705FGQueryBatteryEstimatedTime(DevExt, &ResultValue);
 		if (!NT_SUCCESS(Status))
 		{
 			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "SM5705FGQueryBatteryEstimatedTime failed with Status = 0x%08lX\n", Status);
@@ -574,7 +524,12 @@ Return Value:
 
 	case BatteryTemperature:
 
-		sm5705_Get_Temperature(DevExt, &Temperature);
+		Status = sm5705_Get_Temperature(DevExt, &Temperature);
+
+		if (!NT_SUCCESS(Status))
+		{
+			Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "sm5705 Get Temperature failed with Status = 0x%08lX\n", Status);
+		}
 
 		Temperature = (ULONG)Temperature / (ULONG)10;
 
@@ -689,13 +644,28 @@ Return Value:
 		break;
 	}
 
-	sm5705_Get_Capacity(DevExt, &Capacity);
+	Status = sm5705_Get_Capacity(DevExt, &Capacity);
+	if (!NT_SUCCESS(Status))
+	{
+		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "sm5705 Get Capacity failed with Status = 0x%08lX\n", Status);
+		goto QueryStatusEnd;
+	}
 
 	// Voltage(mV)
-	sm5705_Get_Voltage(DevExt, &Voltage);
+	Status = sm5705_Get_Voltage(DevExt, &Voltage);
+	if (!NT_SUCCESS(Status))
+	{
+		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "sm5705 Get Voltage failed with Status = 0x%08lX\n", Status);
+		goto QueryStatusEnd;
+	}
 
 	// Current (mA)
-	sm5705_Get_Current(DevExt, &Current);
+	Status = sm5705_Get_Current(DevExt, &Current);
+	if (!NT_SUCCESS(Status))
+	{
+		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "sm5705 Get Current failed with Status = 0x%08lX\n", Status);
+		goto QueryStatusEnd;
+	}
 
 	/*
      * BatteryStatus only accepts battery Capacity data in units of mWh,
