@@ -18,6 +18,7 @@ Abstract:
 //--------------------------------------------------------------------- Includes
 
 #include "../SamsungEC/SamsungEC.h"
+#include "../PTN36502/ptn36502.h"
 #include "wdf.tmh"
 
 //------------------------------------------------------------------- Prototypes
@@ -643,6 +644,8 @@ Return Value:
 
 		goto exit;
 	}
+
+	// status = PTN36502_Config(devContext, 0, 0);
 
 	status = SpbTargetInitialize(Device, &devContext->I2CContextCCIC);
 	

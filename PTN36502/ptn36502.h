@@ -6,6 +6,13 @@ Module Name:
 
 --*/
 
+NTSTATUS
+PTN36502_Config(
+	PSURFACE_BATTERY_FDO_DATA DevExt,
+	BYTE Config,
+	BYTE EnableDFP
+);
+
 #define Chip_ID						0x00
 #define Chip_Rev					0x01
 #define USB_TXRX_Control			0x04
