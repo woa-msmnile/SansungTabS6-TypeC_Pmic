@@ -289,6 +289,11 @@ SM5705FGQueryBatteryEstimatedTime(
 	}
 	Current *= -1;
 
+	/* Tip:
+	 * In order to maintain the accuracy of the data,
+	 * We try to avoid involving decimals during runtime as much as possible.
+	*/
+
 	Rate = ((Current * Voltage) / 1000);
 	Availabletime = (ULONG)Capacity * 30096 / (ULONG)10 / (ULONG)Rate;
 
@@ -299,7 +304,7 @@ SM5705FGQueryBatteryEstimatedTime(
 	Trace(
 		TRACE_LEVEL_INFORMATION,
 		SURFACE_BATTERY_TRACE,
-		"BatteryEstimatedTime: %d seconds , Availabletime : %d Rate:  %d \n ", *ResultValue, Capacity * 30096 / 10 / Rate, Rate);
+		"BatteryEstimatedTime: %d seconds\n ", *ResultValue);
 
 Exit:
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE,
