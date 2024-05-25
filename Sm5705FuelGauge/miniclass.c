@@ -257,14 +257,49 @@ SM5705FGQueryBatteryEstimatedTime(
 {
 	NTSTATUS Status = STATUS_SUCCESS;
 
+	ULONG            Capacity;
+	ULONG            Voltage;
+	ULONG            Current;
+	LONG             Rate;
+    INT              Availabletime = 0;
+
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Entering %!FUNC!\n");
 
-	*ResultValue = BATTERY_UNKNOWN_TIME;
+	Status = sm5705_Get_Capacity(DevExt, &Capacity);
+	if (!NT_SUCCESS(Status))
+	{
+		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "sm5705 Get Capacity failed with Status = 0x%08lX\n", Status);
+		goto Exit;
+	}
+
+	// Voltage(mV)
+	Status = sm5705_Get_Voltage(DevExt, &Voltage);
+	if (!NT_SUCCESS(Status))
+	{
+		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "sm5705 Get Voltage failed with Status = 0x%08lX\n", Status);
+		goto Exit;
+	}
+
+	// Current (mA)
+	Status = sm5705_Get_Current(DevExt, &Current);
+	if (!NT_SUCCESS(Status))
+	{
+		Trace(TRACE_LEVEL_ERROR, SURFACE_BATTERY_TRACE, "sm5705 Get Current failed with Status = 0x%08lX\n", Status);
+		goto Exit;
+	}
+	Current *= -1;
+
+	Rate = ((Current * Voltage) / 1000);
+	Availabletime = (ULONG)Capacity * 30096 / (ULONG)10 / (ULONG)Rate;
+
+	Availabletime = Availabletime * (ULONG)36;
+
+	*ResultValue = Availabletime;
 
 	Trace(
 		TRACE_LEVEL_INFORMATION,
 		SURFACE_BATTERY_TRACE,
-		"BatteryEstimatedTime: BATTERY_UNKNOWN_TIME \n");
+		"BatteryEstimatedTime: %d seconds , Availabletime : %d Rate:  %d \n ", *ResultValue, Capacity * 30096 / 10 / Rate, Rate);
 
 Exit:
 	Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE,
