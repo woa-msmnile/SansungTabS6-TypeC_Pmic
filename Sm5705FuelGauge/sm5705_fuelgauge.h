@@ -14,26 +14,26 @@
 
 NTSTATUS
 sm5705_Get_CycleCount(
-	PSURFACE_BATTERY_FDO_DATA DevExt,
-	PULONG CycleCount
+    PSURFACE_BATTERY_FDO_DATA DevExt,
+    PULONG CycleCount
 );
 
 NTSTATUS
 sm5705_Get_Temperature(
-	PSURFACE_BATTERY_FDO_DATA DevExt,
-	PULONG Temperature
+    PSURFACE_BATTERY_FDO_DATA DevExt,
+    PULONG Temperature
 );
 
 NTSTATUS
 sm5705_Get_Capacity(
-	PSURFACE_BATTERY_FDO_DATA DevExt,
-	PULONG Capacity
+    PSURFACE_BATTERY_FDO_DATA DevExt,
+    PULONG Capacity
 );
 
 NTSTATUS
 sm5705_Get_Voltage(
-	PSURFACE_BATTERY_FDO_DATA DevExt,
-	PULONG Voltage
+    PSURFACE_BATTERY_FDO_DATA DevExt,
+    PULONG Voltage
 );
 
 NTSTATUS

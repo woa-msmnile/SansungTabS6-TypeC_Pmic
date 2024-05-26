@@ -545,6 +545,7 @@ Return Value:
 	// Get the resouce hub connection ID for our I2C driver
 	//
 	resourceCount = WdfCmResourceListGetCount(ResourcesTranslated);
+
 	BOOLEAN FoundSM5705FG = FALSE;
 	BOOLEAN FoundPTN = FALSE;
 	BOOLEAN FoundCCIC = FALSE;

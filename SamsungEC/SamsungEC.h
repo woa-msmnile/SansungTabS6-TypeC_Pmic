@@ -95,8 +95,12 @@ typedef struct {
     //
     // Spb (I2C) related members used for the lifetime of the device
     //
+
+    // SM5705-FuelGauge
     SPB_CONTEXT I2CContext;
+    // PTN36502 (Redriver)
     SPB_CONTEXT I2CContextPTN;
+    // S2MM005 (USBPD)
     SPB_CONTEXT I2CContextCCIC;
 
     //
