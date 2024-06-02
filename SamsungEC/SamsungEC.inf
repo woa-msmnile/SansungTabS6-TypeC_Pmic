@@ -1,6 +1,6 @@
  ;/*++
 ;
-;Copyright (c) Microsoft Corporation All rights Reserved
+;Copyright (c) XiaoYeZi Corporation All rights Reserved
 ;
 ;Module Name:
 ;
@@ -69,6 +69,6 @@ ServiceBinary  = %13%\SamsungEC.sys
 [Strings]
 SPSVCINST_ASSOCSERVICE= 0x00000002
 ProviderName = "Samsung"
-DiskId1 = "Samsung Galaxy Tab S6 (Wifi) EC & USB Mini Class Installation Disk"
-SamsungEC.DeviceDesc = "Samsung Galaxy Tab S6 (Wifi) EC & USB"
-SamsungEC.SVCDESC = "Samsung Galaxy Tab S6 (Wifi) EC & USB"
+DiskId1 = "Samsung 3rd Party Type-C controller and Power management Mini Class Installation Disk"
+SamsungEC.DeviceDesc = "Samsung 3rd Party Type-C controller and Power management"
+SamsungEC.SVCDESC = "Samsung 3rd Party Type-C controller and Power management"
