@@ -40,19 +40,3 @@ Exit:
 		Status);
 	return Status;
 }
-
-NTSTATUS
-S2mm005_Get_TypeC_Status_Automatic(
-	IN WDFTIMER Timer
-)
-{
-	NTSTATUS Status = STATUS_SUCCESS;
-	int USB_CC_Status = 0;
-
-	PSURFACE_BATTERY_FDO_DATA DevExt;
-
-
-	S2mm005_Get_TypeC_Status(DevExt, &USB_CC_Status);
-
-	return Status;
-}
