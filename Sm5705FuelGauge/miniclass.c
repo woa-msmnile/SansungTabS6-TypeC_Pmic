@@ -675,12 +675,12 @@ Return Value:
 	switch (TypeC_Status) {
 	case 0x11:
 	case 0x1d:
-		PTN36502_Config(DevExt, USB3_ONLY_MODE, 0);
+//PTN36502_Config(DevExt, USB3_ONLY_MODE, 0);
 		BatteryStatus->PowerState = BATTERY_POWER_ON_LINE;
 		Trace(TRACE_LEVEL_INFORMATION, SURFACE_BATTERY_TRACE, "Battery: Charging \n");
 		break;
 	case 0x0e:
-		PTN36502_Config(DevExt, USB3_ONLY_MODE, 1);
+//PTN36502_Config(DevExt, USB3_ONLY_MODE, 1);
 		BatteryStatus->PowerState = BATTERY_DISCHARGING;
 		break;
 	default:

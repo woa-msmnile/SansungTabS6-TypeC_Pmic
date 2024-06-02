@@ -10,33 +10,34 @@ Module Name:
 #include "../SamsungEC/SamsungEC.h"
 #include "../SamsungEC/Spb.h"
 #include "../S2MM005/s2mm005.h"
+#include "../PTN36502/ptn36502.h"
 #include "s2mm005.tmh"
 
-BYTE s2mm005_Read_Status[2] = { 0x00,0x20 };
+//--------------------------------------------------------------------- Includes
+
 
 NTSTATUS
-S2mm005_Get_TypeC_Status(
-	PSURFACE_BATTERY_FDO_DATA DevExt,
-	PULONG TypeC_Status
+S2mm005_Set_TypeC_Mode(
+	PSURFACE_BATTERY_FDO_DATA DevExt
 )
 {
 	NTSTATUS Status = STATUS_SUCCESS;
-	int USB_CC_Status = 0;
+	ULONG            TypeC_Status;
+	S2mm005_Get_TypeC_Status(DevExt, &TypeC_Status);
 
-	Status = SpbReadDataSynchronouslyFromAnyAddr(&DevExt->I2CContextCCIC, s2mm005_Read_Status, &USB_CC_Status, sizeof(s2mm005_Read_Status), 1);
-	if (!NT_SUCCESS(Status))
-	{
-		Trace(TRACE_LEVEL_ERROR, SURFACE_OTHER_TRACE, "SpbReadDataSynchronously failed with Status = 0x%08lX\n", Status);
-		goto Exit;
+	switch (TypeC_Status) {
+	case 0x00:
+	case 0x03:
+	case 0x07:
+	case 0x11:
+	case 0x1d:
+		PTN36502_Config(DevExt, USB3_ONLY_MODE, 0);
+		break;
+	case 0x0e:
+		PTN36502_Config(DevExt, USB3_ONLY_MODE, 1);
+		break;
+	default:
+		break;
 	}
 
-	Trace(TRACE_LEVEL_INFORMATION, SURFACE_OTHER_TRACE, "S2mm005: Read USB_CC_Status: %d \n", USB_CC_Status);
-
-	*TypeC_Status = USB_CC_Status;
-
-Exit:
-	Trace(TRACE_LEVEL_INFORMATION, SURFACE_OTHER_TRACE,
-		"Leaving %!FUNC!: Status = 0x%08lX\n",
-		Status);
-	return Status;
 }

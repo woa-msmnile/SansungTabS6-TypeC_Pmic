@@ -19,6 +19,8 @@ Abstract:
 
 #include "../SamsungEC/SamsungEC.h"
 #include "../PTN36502/ptn36502.h"
+#include "../S2MM005/s2mm005.h"
+
 #include "wdf.tmh"
 
 //------------------------------------------------------------------- Prototypes

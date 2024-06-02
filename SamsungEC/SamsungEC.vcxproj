@@ -99,6 +99,7 @@
   <ItemGroup>
     <ClCompile Include="..\PTN36502\ptn36502.c" />
     <ClCompile Include="..\S2MM005\s2mm005.c" />
+    <ClCompile Include="..\S2MM005\s2mm005_cc.c" />
     <ClCompile Include="..\SM5705FuelGauge\miniclass.c" />
     <ClCompile Include="..\Sm5705FuelGauge\sm5705_fuelgauge.c" />
     <ClCompile Include="Spb.c" />
