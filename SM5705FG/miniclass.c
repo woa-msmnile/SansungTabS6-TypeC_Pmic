@@ -196,11 +196,11 @@ SM5705FGQueryBatteryInformation(
 	BYTE LION[4] = {'L','I','O','N'};
 	RtlCopyMemory(BatteryInformationResult->Chemistry, LION, 4);
 
-	// fuelgauge,capacity = <7040>;
-	BatteryInformationResult->DesignedCapacity = 7040;
+	// mWh (7040mAh * 4.4V)
+	BatteryInformationResult->DesignedCapacity = 30976;
 
-	// battery,battery_full_capacity = <7040>;
-	BatteryInformationResult->FullChargedCapacity = 7040;
+	// mWh (6840mAh * 4.4V)
+	BatteryInformationResult->FullChargedCapacity = 30096;
 
 	BatteryInformationResult->DefaultAlert1 = BatteryInformationResult->FullChargedCapacity * 7 / 100; // 7% of total capacity for error
 	BatteryInformationResult->DefaultAlert2 = BatteryInformationResult->FullChargedCapacity * 9 / 100; // 9% of total capacity for warning
@@ -712,6 +712,7 @@ Return Value:
 		Capacity = Capacity + (((ret_Capacity & 0x00ff) * 10) / 256); // integer + fractional bit
 	}
 
+	// Voltage(mV)
 	Status = SpbReadDataSynchronously(&DevExt->I2CContext, SM5705_REG_VOLTAGE, &ret_Voltage, 2);
 	if (!NT_SUCCESS(Status))
 	{
@@ -726,6 +727,7 @@ Return Value:
 		Voltage = Voltage + (((ret_Voltage & 0x07ff) * 1000) / 2048); // integer + fractional
 	}
 
+	// Current (mA)
 	Status = SpbReadDataSynchronously(&DevExt->I2CContext, SM5705_REG_CURRENT, &ret_Current, 2);
 	if (!NT_SUCCESS(Status))
 	{
@@ -746,12 +748,14 @@ Return Value:
 	/*
      * BatteryStatus only accepts battery Capacity data in units of mWh,
 	 * So we need to perform some conversions.
-	 * For example: 150/100=15/100=0.15 (15%)
 	*/
 
 	// mWh
-	BatteryStatus->Capacity = (ULONG)Capacity * 7040 / (ULONG)1000;
+	// (6840mAh * 4.4V = 30096mWh)
+	BatteryStatus->Capacity = (ULONG)Capacity * 30096 / (ULONG)1000;
+	// mV
 	BatteryStatus->Voltage = (ULONG)Voltage;
+	// mW (Signed)
 	BatteryStatus->Rate = (((LONG)Current * (LONG)Voltage) / (LONG)1000);
 
 	Trace(
