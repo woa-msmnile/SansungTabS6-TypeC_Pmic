@@ -1,10 +1,19 @@
 # Smaung SM5705 Battery Fuel Gauge Driver
 
 > Basd on [SurfaceDuo Battery](https://github.com/woa-project/surfacebattery).
+
 > Reference on [HotdogBattery](https://github.com/sunflower2333/HotdogBattery/).  
+
+> [!Caution]
+> - **The driver still has many battery functions that have not been implemented yet, please note!**
+> - **This driver is only considered for Samsung Galaxy Tab S6 (LTE/WIFI) and is not recommended for other devices!**
+
+> [!Note]
+> - Due to the incomplete development of the TypeC-PMIC driver program by another branch, which is far from meeting the usable standards, the main branch of the driver program will be restored to a driver with only battery function. In the other branch, we still need to implement IRQ (?) or other methods to trigger the driver program to detect the status of TypeC and make corresponding adjustments based on the status.
+
 * This driver is designed for the Smaung SM5705 Fuel Gauges found in the Samsung Galaxy Tab S6 LTE/WIFI. 
 * This driver enables Windows to get information about battery packs used in Samsung Galaxy Tab S6 LTE/WIFI. It does not provide charging capabilities.
-* **The driver still has many battery functions that have not been implemented yet, please note!**
+
 ## Future plans
 * Because the USB and charging parts of Samsung Galaxy Tab S6 (WIFI) do not use PM8150B, we plan to modify the driver to control multiple I2C devices for better coordination.
 ## ACPI Sample
